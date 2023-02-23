@@ -1,19 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"math/rand"
-
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 )
 
+// generate a new session ID using either a UUID (if it is generated successfully)
+// or a combination of the current time in milliseconds and a random integer (if the UUID generation fails)
 func generateSessionId() string {
-	u2, err := uuid.NewV4()
-	if err != nil {
-		milli := getCurrentMilli()
-		rand.Seed(milli)
-		sessionId := fmt.Sprintf("%d-%d", milli, rand.Intn(10000000))
-		return sessionId
-	}
-	return u2.String()
+	return uuid.New().String()
 }

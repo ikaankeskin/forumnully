@@ -2,10 +2,14 @@ package main
 
 import "time"
 
+//
+// Get current time in milliseconds
 func getCurrentMilli() int64 {
-	return time.Now().UnixMilli()
+	return time.Now().UnixNano() / 1000000
 }
+
+// Convert milliseconds into this format "02-Jan-2006 15:04:05"
 func formatMilli(date int) string {
-	t := time.Unix(int64(date), 0)
-	return t.Format("02-Jan-2006 15:04:05")
+	time := time.Unix(int64(date), 0)
+	return time.Format("2023-02-25 21:09:56")
 }

@@ -1,18 +1,17 @@
 package main
 
 func filterByCategories(posts []Post, filterCategories []string) []Post {
+	// if a user didn't chose to filter the categories, we return posts as they are
 	if len(filterCategories) == 0 {
 		return posts
 	}
-	result := []Post{}
+
+	sortedPosts := []Post{}
 	for _, post := range posts {
 		categoties := post.Categories
-		for _, cat := range categoties {
-			if contains(filterCategories, cat) {
-				result = append(result, post)
-				break
-			}
+		if containsArr(filterCategories, categoties) {
+			sortedPosts = append(sortedPosts, post)
 		}
 	}
-	return result
+	return sortedPosts
 }

@@ -6,41 +6,48 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 )
 
-var invalidCredentialsFlagSignUp = false
-var invalidCredentialsFlagSignIn = false
-var emptyPostFlag = false
-var SESSION_ID = "SESSION_ID"
-var filterCategories = []string{}
+var (
+	SESSION_ID = "SESSION_ID"
+	port       = "8080"
+)
+
+/*    		End points
+/    					main page handler index.html
+/sign					signIn/signUp handler sign.html
+/signup					register user handler
+/login					log in handler
+/signout				log out handler
+/post					new post handler post.html
+/savepost				save post handler
+/registerlike			save post like handler
+/registercommentlike	save comment like handler
+/comment				new comment comment.html
+/commentsubmit			save comment handler
+/setfilter				add filter by category handler
+/removefilter			remove filter by category handler
+/changemode				change view mode handler. View modes: Shaw All/My Posts/My Comments/My Likes
+*/
 
 func main() {
-	dbLocal, err := sql.Open("sqlite3", "./forum.db")
+	DB, err := sql.Open("sqlite3", "./forum.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	db = dbLocal
+	db = DB
+
 	defer db.Close()
+
 	createTables()
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/sign", signHandler)
-	http.HandleFunc("/signup", signupHandler)
-	http.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/signout", signoutHandler)
-	http.HandleFunc("/post", postHandler)
-	http.HandleFunc("/savepost", savepostHandler)
-	http.HandleFunc("/registerlike", registerlikeHandler)
-	http.HandleFunc("/registercommentlike", registercommentlikeHandler)
-	http.HandleFunc("/comment", commentHandler)
-	http.HandleFunc("/commentsubmit", commentsubmitHandler)
-	http.HandleFunc("/setfilter", setfilterHandler)
-	http.HandleFunc("/removefilter", removefilterHandler)
-	fmt.Println("Server start at port :8080")
-	http.ListenAndServe(":8080", nil)
+
+	http.HandleFunc("/", homeHandler)
+
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	fmt.Println("Server starts at port :8080")
+	http.ListenAndServe(":"+port, nil)
 }
+
 func createTables() {
 	err := crerateUsersTable()
 	if err != nil {
@@ -49,12 +56,6 @@ func createTables() {
 	err = crerateCategoriesTable()
 	if err != nil {
 		log.Fatal(err)
-	}
-	err = insertCategories([]string{"C++", "C#", "Java", "JavaScript", "HTML", "CSS", "PHP", "Go", "Rust", "Node"})
-	if err != nil {
-		if !strings.HasPrefix(err.Error(), "UNIQUE constraint failed:") {
-			log.Fatal(err)
-		}
 	}
 	err = creratePostsTable()
 	if err != nil {
@@ -73,12 +74,21 @@ func createTables() {
 		log.Fatal(err)
 	}
 }
+
 func showError(w http.ResponseWriter, code int, message string) {
-	templ, err := template.ParseFiles("templates/error.html")
+	// set the status code of the HTTP response to the provided 'code' int
+	// we do it before excuting the template to ensure the correct HTTP status code is included in the response headers
 	w.WriteHeader(code)
+	// 	// execute the parsed templ by calling the Ecexute method,
+	// passing the w and message args, substituting the {{.}} with the message arg
+
+	templ, err := template.ParseFiles("templates/error.html")
 	if err != nil {
-		fmt.Fprint(w, "500 Internal Server Error")
+		fmt.Fprint(w, "500 Internal Error")
 		return
 	}
-	templ.Execute(w, message)
+	err = templ.Execute(w, message)
+	if err != nil {
+		fmt.Fprint(w, "500 Internal Error")
+	}
 }
